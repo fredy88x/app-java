@@ -1,5 +1,6 @@
 package neoflix.routes;
 
+import com.google.gson.Gson;
 import io.javalin.apibuilder.EndpointGroup;
 import neoflix.Params;
 import neoflix.AppUtils;
@@ -7,7 +8,11 @@ import neoflix.services.FavoriteService;
 import neoflix.services.RatingService;
 import org.neo4j.driver.Driver;
 
-import static io.javalin.apibuilder.ApiBuilder.*;
+import java.util.Map;
+
+import static io.javalin.apibuilder.ApiBuilder.delete;
+import static io.javalin.apibuilder.ApiBuilder.get;
+import static io.javalin.apibuilder.ApiBuilder.post;
 
 public class AccountRoutes implements EndpointGroup {
     private final FavoriteService favoriteService;
@@ -79,7 +84,8 @@ public class AccountRoutes implements EndpointGroup {
         // tag::rating[]
         post("/ratings/{id}", ctx -> {
             var userId = AppUtils.getUserId(ctx); // TODO
-            var value = Integer.parseInt(gson.fromJson(ctx.body(), Map.class).get("rating").toString());
+            var gson = new Gson();
+            var value = Integer.parseInt( gson.fromJson(ctx.body(), Map.class).get("rating").toString());
             var rating = ratingService.add(userId, ctx.pathParam("id"), value);
             ctx.result(gson.toJson(rating));
         });
