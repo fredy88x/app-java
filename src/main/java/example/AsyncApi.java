@@ -5,7 +5,9 @@ import neoflix.AppUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import org.neo4j.driver.*;
-import org.neo4j.driver.reactive.RxSession;
+import org.neo4j.driver.async.AsyncSession;
+import org.neo4j.driver.reactive.ReactiveSession;
+import reactor.adapter.JdkFlowAdapter;
 // end::import[]
 
 import java.util.*;
@@ -27,7 +29,7 @@ public class AsyncApi {
         // tag::sync[]
         try (var session = driver.session()) {
 
-            var res = session.readTransaction(tx -> tx.run(
+            var res = session.executeRead(tx -> tx.run(
                     "MATCH (p:Person) RETURN p.name AS name LIMIT 10").list());
             res.stream()
                     .map(row -> row.get("name"))
@@ -42,8 +44,8 @@ public class AsyncApi {
 
     static void asyncExample() {
         // tag::async[]
-        var session = driver.asyncSession();
-        session.readTransactionAsync(tx -> tx.runAsync(
+        var session = driver.session(AsyncSession.class);
+        session.executeReadAsync(tx -> tx.runAsync(
                         "MATCH (p:Person) RETURN p.name AS name LIMIT 10")
 
                 .thenApplyAsync(res -> res.listAsync(row -> row.get("name")))
@@ -58,17 +60,16 @@ public class AsyncApi {
 
     static void reactiveExample() {
         // tag::reactive[]
-        Flux.usingWhen(Mono.fromSupplier(driver::rxSession),
-            session -> session.readTransaction(tx -> {
-                var rxResult = tx.run(
-                        "MATCH (p:Person) RETURN p.name AS name LIMIT 10");
-                return Flux
-                    .from(rxResult.records())
-                    .map(r -> r.get("name").asString())
-                    .doOnNext(System.out::println)
-                    .then(Mono.from(rxResult.consume()));
-            }
-            ), RxSession::close);
+        Flux.usingWhen(Mono.fromSupplier(() -> driver.session(ReactiveSession.class)),
+            session -> JdkFlowAdapter.flowPublisherToFlux(session.executeRead(tx ->
+                JdkFlowAdapter.publisherToFlowPublisher(
+                    JdkFlowAdapter.flowPublisherToFlux(tx.run(
+                            "MATCH (p:Person) RETURN p.name AS name LIMIT 10"))
+                        .flatMap(rxResult -> JdkFlowAdapter.flowPublisherToFlux(rxResult.records())
+                            .map(r -> r.get("name").asString())
+                            .doOnNext(System.out::println)
+                            .then(Mono.from(JdkFlowAdapter.flowPublisherToFlux(rxResult.consume()))))))),
+            session -> JdkFlowAdapter.flowPublisherToFlux(session.close()));
         // end::reactive[]
     }
 }

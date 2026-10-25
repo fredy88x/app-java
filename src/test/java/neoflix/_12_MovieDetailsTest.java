@@ -24,7 +24,7 @@ class _12_MovieDetailsTest {
         AppUtils.loadProperties();
         driver = AppUtils.initDriver();
         if (driver != null)
-            driver.session().writeTransaction(tx -> tx.run("""
+            driver.session().executeWrite(tx -> tx.run("""
                 MERGE (u:User {userId: $userId}) SET u.email = $email
                 """, Values.parameters("userId", userId, "email", email)));
     }

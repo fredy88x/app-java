@@ -26,7 +26,7 @@ class _03_RegisterUserTest {
         driver = AppUtils.initDriver();
         jwtSecret = AppUtils.getJwtSecret();
 
-        if (driver != null) driver.session().writeTransaction(tx -> tx.run("MATCH (u:User {email: $email}) DETACH DELETE u", Values.parameters("email", email)));
+        if (driver != null) driver.session().executeWrite(tx -> tx.run("MATCH (u:User {email: $email}) DETACH DELETE u", Values.parameters("email", email)));
     }
 
     @AfterAll
@@ -49,7 +49,7 @@ class _03_RegisterUserTest {
 
         // Expect user exists in database
         if (driver != null) try (var session = driver.session()) {
-            session.readTransaction(tx -> {
+            session.executeRead(tx -> {
                     var user = tx.run(
                             "MATCH (u:User {email: $email}) RETURN u",
                             Values.parameters("email", email))

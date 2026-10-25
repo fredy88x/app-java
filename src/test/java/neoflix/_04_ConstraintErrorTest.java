@@ -32,7 +32,7 @@ class _04_ConstraintErrorTest {
     @AfterAll
     static void closeDriver() {
         if (driver != null) {
-            driver.session().writeTransaction(tx -> tx.run("MATCH (u:User {email: $email}) DETACH DELETE u", Values.parameters("email", email)));
+            driver.session().executeWrite(tx -> tx.run("MATCH (u:User {email: $email}) DETACH DELETE u", Values.parameters("email", email)));
             driver.close();
         }
     }
@@ -45,7 +45,7 @@ class _04_ConstraintErrorTest {
     void findUniqueConstraint() {
         Assumptions.assumeTrue(driver != null);
         try (var session = driver.session()) {
-            session.readTransaction(tx -> {
+            session.executeRead(tx -> {
                 var constraint = tx.run("""
                         CALL db.constraints()
                         YIELD name, description

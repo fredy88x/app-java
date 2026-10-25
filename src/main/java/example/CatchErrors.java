@@ -24,7 +24,7 @@ public class CatchErrors {
     String email = "uniqueconstraint@example.com";
     // tag::constraint-error[]
     try (var session = driver.session()) {
-      session.writeTransaction(tx -> {
+      session.executeWrite(tx -> {
           var res = tx.run("CREATE (u:User {email: $email}) RETURN u",
                            Values.parameters("email", email));
           return res.single().get('u').asMap();

@@ -26,7 +26,7 @@ class _07_FavoritesListTest {
         driver = AppUtils.initDriver();
         if (driver != null) {
             try (var session = driver.session()) {
-                session.writeTransaction(tx -> tx.run("""
+                session.executeWrite(tx -> tx.run("""
                         MERGE (u:User {userId: $userId}) SET u.email = $email
                         """, Values.parameters("userId", userId, "email", email)));
             }
@@ -54,7 +54,7 @@ class _07_FavoritesListTest {
     void removeFavorites() {
         if (driver != null)
             try (var session = driver.session()) {
-            session.writeTransaction(tx ->
+            session.executeWrite(tx ->
                     tx.run("MATCH (u:User {userId: $userId})-[r:HAS_FAVORITE]->(m:Movie) DELETE r",
                             Values.parameters("userId", userId)));
             }

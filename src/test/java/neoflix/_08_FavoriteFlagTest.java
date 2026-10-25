@@ -25,7 +25,7 @@ class _08_FavoriteFlagTest {
     static void initDriver() {
         AppUtils.loadProperties();
         driver = AppUtils.initDriver();
-        if (driver != null) driver.session().writeTransaction(tx -> tx.run("""
+        if (driver != null) driver.session().executeWrite(tx -> tx.run("""
                 MATCH (u:User {email: $email}) DETACH DELETE u
                 """, Values.parameters("email", email)));
         var user = new AuthService(driver, AppUtils.getJwtSecret()).register(email, "letmein", email);
@@ -40,7 +40,7 @@ class _08_FavoriteFlagTest {
     @BeforeEach
     void setUp() {
         if (driver != null) try (var session = driver.session()) {
-            session.writeTransaction(tx ->
+            session.executeWrite(tx ->
                     tx.run("MATCH (u:User {userId: $userId})-[r:HAS_FAVORITE]->(m:Movie) DELETE r",
                             Values.parameters("userId", userId)));
         }

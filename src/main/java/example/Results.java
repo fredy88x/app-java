@@ -31,7 +31,7 @@ public class Results {
 
             // tag::run[]
             // Execute a query within a read transaction
-            Result res = session.readTransaction(tx -> tx.run("""
+            Result res = session.executeRead(tx -> tx.run("""
                             MATCH path = (person:Person)-[actedIn:ACTED_IN]->(movie:Movie)
                             RETURN path, person, actedIn, movie,
                                    size ( (person)-[:ACTED]->() ) as movieCount,

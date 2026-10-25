@@ -62,7 +62,6 @@ scheme        port number
             .withMaxConnectionPoolSize(10)
             .withConnectionAcquisitionTimeout(20, TimeUnit.SECONDS)
             .withFetchSize(1000)
-            .withDriverMetrics()
             .withLogging(Logging.console(Level.INFO))
             .build();
 // end::configuration[]
@@ -132,7 +131,7 @@ private static void showReadTransaction (Driver driver){
 
       // tag::session.readTransaction[]
       // Run a query within a Read Transaction
-      var res = session.readTransaction(tx -> {
+      var res = session.executeRead(tx -> {
       return tx.run("""
                       MATCH (p:Person)-[:ACTED_IN]->(m:Movie)
                       WHERE m.title = $title // <1>
@@ -151,7 +150,7 @@ private static void showWriteTransaction (Driver driver){
     try (var session = driver.session()) {
 
       // tag::session.writeTransaction[]
-      session.writeTransaction(tx -> {
+      session.executeWrite(tx -> {
         return tx.run(
                 "CREATE (p:Person {name: $name})",
                 Values.parameters("name", "Michael")).consume();
@@ -211,7 +210,7 @@ private static Map<String,Object> createPerson(String name) {
         // end::sessionWithArgs[]
 
         // Create a node within a write transaction
-        var res = session.writeTransaction(tx ->
+        var res = session.executeWrite(tx ->
                 tx.run("CREATE (p:Person {name: $name}) RETURN p",
                                 Values.parameters("name", name))
                         .single());
